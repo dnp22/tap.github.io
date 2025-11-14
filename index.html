@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surprise Gaming Website</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            color: #00ff00;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .loading-screen {
+            background: linear-gradient(45deg, #0f0f23, #1a1a2e);
+            text-align: center;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px #00ff00;
+            animation: pulse 1.5s infinite;
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            height: 20px;
+            border: 2px solid #00ff00;
+            background: #000;
+            margin-bottom: 40px;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00aa00);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .proceed-btn {
+            background: linear-gradient(45deg, #ff6b00, #ff8500);
+            border: 3px solid #ffaa00;
+            color: white;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s;
+        }
+
+        .proceed-btn.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .game-screen {
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            position: relative;
+        }
+
+        .game-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: #ffaa00;
+        }
+
+        .game-area {
+            width: 600px;
+            height: 400px;
+            border: 3px solid #00ff00;
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .target {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff00ff, #ff6bff);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            position: absolute;
+            cursor: pointer;
+            animation: float 2s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
+        }
+
+        .success-screen {
+            background: linear-gradient(45deg, #ff6b00, #ffaa00);
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% { 
+                transform: translateY(-100px) rotate(0deg); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translateY(calc(100vh + 100px)) rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+
+        .surprise-message {
+            font-size: 28px;
+            color: white;
+            text-shadow: 3px 3px 0px #000;
+            animation: celebration 2s ease-in-out infinite;
+            margin-bottom: 40px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .monsters-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .monster {
+            font-size: 60px;
+            animation: dance 1s ease-in-out infinite;
+        }
+
+        .monster:nth-child(1) { animation-delay: 0s; }
+        .monster:nth-child(2) { animation-delay: 0.2s; }
+        .monster:nth-child(3) { animation-delay: 0.4s; }
+        .monster:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes dance {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(-5deg); }
+            50% { transform: translateY(-5px) rotate(0deg); }
+            75% { transform: translateY(-15px) rotate(5deg); }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <main>
+   <div class="screen loading-screen active" id="loadingScreen">
+    <div class="loading-text" id="loadingText">
+     Loading...
+    </div>
+    <div class="loading-bar-container">
+     <div class="loading-bar" id="loadingBar"></div>
+    </div><button class="proceed-btn" id="proceedBtn">PROCEED</button>
+   </div>
+   <div class="screen game-screen" id="gameScreen">
+    <div class="game-info">
+     <div>
+      Catch the orb!
+     </div>
+     <div>
+      Catches: <span id="catchCount">0</span>/3
+     </div>
+    </div>
+    <div class="game-area" id="gameArea">
+     <div class="target" id="target"></div>
+    </div>
+   </div>
+   <div class="screen success-screen" id="successScreen">
+    <div class="confetti-container" id="confettiContainer"></div>
+    <div class="surprise-message" id="surpriseMessage">
+     Happy 365 Day Streak on TikTok Bro!
+    </div>
+    <div class="monsters-container">
+     <div class="monster">
+      👾
+     </div>
+     <div class="monster">
+      🤖
+     </div>
+     <div class="monster">
+      👹
+     </div>
+     <div class="monster">
+      👻
+     </div>
+    </div>
+   </div>
+  </main>
+  <script>
+        const defaultConfig = {
+            surprise_message: "Happy 365 Day Streak on TikTok Bro!",
+            loading_text: "Loading...",
+            proceed_button_text: "PROCEED",
+            primary_color: "#00ff00",
+            accent_color: "#ff6b00",
+            text_color: "#ffffff",
+            font_family: "Press Start 2P",
+            font_size: 16
+        };
+
+        let catches = 0;
+        let gameActive = false;
+
+        function startLoading() {
+            const loadingBar = document.getElementById('loadingBar');
+            const proceedBtn = document.getElementById('proceedBtn');
+            let progress = 0;
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => proceedBtn.classList.add('show'), 500);
+                }
+                loadingBar.style.width = progress + '%';
+            }, 200);
+        }
+
+        function startGame() {
+            gameActive = true;
+            const target = document.getElementById('target');
+            const gameArea = document.getElementById('gameArea');
+            
+            function moveTarget() {
+                if (!gameActive) return;
+                const x = Math.random() * (gameArea.clientWidth - 44);
+                const y = Math.random() * (gameArea.clientHeight - 44);
+                target.style.left = x + 'px';
+                target.style.top = y + 'px';
+            }
+
+            moveTarget();
+            const moveInterval = setInterval(moveTarget, 1500);
+
+            target.onclick = () => {
+                catches++;
+                document.getElementById('catchCount').textContent = catches;
+                
+                if (catches >= 3) {
+                    gameActive = false;
+                    clearInterval(moveInterval);
+                    setTimeout(() => {
+                        document.getElementById('gameScreen').classList.remove('active');
+                        document.getElementById('successScreen').classList.add('active');
+                        createConfetti();
+                    }, 500);
+                } else {
+                    moveTarget();
+                }
+            };
+        }
+
+        function createConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#ff6b00', '#ffaa00', '#00ff00', '#ff00ff', '#00ffff', '#ff0000'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                container.appendChild(confetti);
+            }
+        }
+
+        document.getElementById('proceedBtn').onclick = () => {
+            document.getElementById('loadingScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            startGame();
+        };
+
+        async function onConfigChange(config) {
+            document.getElementById('loadingText').textContent = config.loading_text || defaultConfig.loading_text;
+            document.getElementById('proceedBtn').textContent = config.proceed_button_text || defaultConfig.proceed_button_text;
+            document.getElementById('surpriseMessage').textContent = config.surprise_message || defaultConfig.surprise_message;
+            
+            const fontSize = config.font_size || defaultConfig.font_size;
+            document.getElementById('loadingText').style.fontSize = `${fontSize * 1.5}px`;
+            document.getElementById('surpriseMessage').style.fontSize = `${fontSize * 1.75}px`;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    {
+                        get: () => config.primary_color || defaultConfig.primary_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.accent_color || defaultConfig.accent_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || defaultConfig.font_family,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || defaultConfig.font_size,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_size: value });
+                        }
+                    }
+                }
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["surprise_message", config.surprise_message || defaultConfig.surprise_message],
+                ["loading_text", config.loading_text || defaultConfig.loading_text],
+                ["proceed_button_text", config.proceed_button_text || defaultConfig.proceed_button_text]
+            ]);
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        startLoading();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99ddb1ef961b9c1a',t:'MTc2MzAzMDg4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
